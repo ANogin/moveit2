@@ -37,11 +37,23 @@
 #include <moveit/robot_state/attached_body.hpp>
 #include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shapes.h>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
+#include <moveit/utils/logger.hpp>
 
 namespace moveit
 {
 namespace core
 {
+
+namespace
+{
+rclcpp::Logger getLogger()
+{
+  return moveit::getLogger("moveit.core.robot_state.attached_body");
+}
+}  // namespace
+
 AttachedBody::AttachedBody(const LinkModel* parent, const std::string& id, const Eigen::Isometry3d& pose,
                            const std::vector<shapes::ShapeConstPtr>& shapes,
                            const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
@@ -138,11 +150,14 @@ void AttachedBody::setPadding(double padding)
 
 const Eigen::Isometry3d& AttachedBody::getSubframeTransform(const std::string& frame_name, bool* found) const
 {
+  RCLCPP_DEBUG(getLogger(),
+               "AttachedBody::getSubframeTransform(%s): looking in %s", frame_name.c_str(), id_.c_str());
   if (frame_name.rfind(id_, 0) == 0 && frame_name[id_.length()] == '/')
   {
     auto it = subframe_poses_.find(frame_name.substr(id_.length() + 1));
     if (it != subframe_poses_.end())
     {
+      RCLCPP_DEBUG(moveit::getLogger("moveit.core.robot_state.attached_body"), "AttachedBody::getSubframeTransform(%s): found %s", frame_name.c_str(), it->first.c_str());
       if (found)
         *found = true;
       return it->second;
@@ -156,11 +171,14 @@ const Eigen::Isometry3d& AttachedBody::getSubframeTransform(const std::string& f
 
 const Eigen::Isometry3d& AttachedBody::getGlobalSubframeTransform(const std::string& frame_name, bool* found) const
 {
+  RCLCPP_DEBUG(getLogger(),
+               "AttachedBody::getGlobalSubframeTransform(%s): looking in %s", frame_name.c_str(), id_.c_str());
   if (frame_name.rfind(id_, 0) == 0 && frame_name[id_.length()] == '/')
   {
     auto it = global_subframe_poses_.find(frame_name.substr(id_.length() + 1));
     if (it != global_subframe_poses_.end())
     {
+      RCLCPP_DEBUG(moveit::getLogger("moveit.core.robot_state.attached_body"), "AttachedBody::getGlobalSubframeTransform(%s): found %s", frame_name.c_str(), it->first.c_str());
       if (found)
         *found = true;
       return it->second;

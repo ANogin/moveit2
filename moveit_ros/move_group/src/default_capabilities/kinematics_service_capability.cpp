@@ -42,6 +42,12 @@
 #include <moveit/move_group/capability_names.hpp>
 #include <moveit/utils/logger.hpp>
 
+namespace {
+rclcpp::Logger getLogger()
+{
+  return moveit::getLogger("moveit.ros.move_group.kinematic_service_capability");
+}
+}  // namespace
 namespace move_group
 {
 
@@ -99,6 +105,8 @@ void MoveGroupKinematicsService::computeIK(moveit_msgs::msg::PositionIKRequest& 
       std::string ik_link = (!req.pose_stamped_vector.empty()) ?
                                 (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) :
                                 req.ik_link_name;
+      RCLCPP_DEBUG(getLogger(), "MoveGroupKinematicsService::computeIK(frame_id='%s', ik_link='%s')",
+                   req_pose.header.frame_id.c_str(), ik_link.c_str());
 
       bool frame_found = false;
       const Eigen::Isometry3d& transform = rs.getFrameTransform(req_pose.header.frame_id, &frame_found);
@@ -115,6 +123,19 @@ void MoveGroupKinematicsService::computeIK(moveit_msgs::msg::PositionIKRequest& 
         }
         else
         {
+          if (getLogger().get_effective_level() <= rclcpp::Logger::Level::Debug) {
+            const Eigen::Isometry3d & ttransform = rs.getFrameTransform(ik_link, &frame_found);
+            if (frame_found) {
+              Eigen::Isometry3d link_pose = transform.inverse() * ttransform;
+              auto rel_pose = tf2::toMsg(link_pose);
+              RCLCPP_DEBUG(getLogger(),
+                           "MoveGroupKinematicsService::computeIK: %s is [%0.5f, %0.5f, %0.5f][%0.5f, %0.5f, %0.5f, "
+                           "%0.5f] wrt %s",
+                           ik_link.c_str(), rel_pose.position.x, rel_pose.position.y, rel_pose.position.z,
+                           rel_pose.orientation.x, rel_pose.orientation.y, rel_pose.orientation.z,
+                           rel_pose.orientation.w, req_pose.header.frame_id.c_str());
+            }
+          }
           result_ik = rs.setFromIK(jmg, pose, ik_link, req.timeout.sec, constraint);
         }
 

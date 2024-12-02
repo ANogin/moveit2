@@ -385,6 +385,7 @@ private:
 bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, const std::string& to,
                                                       Eigen::Isometry3d& transform, bool& differs_from_identity)
 {
+  RCLCPP_DEBUG(getLogger(), "IKFastKinematicsPlugin::computeRelativeTransform(%s, %s)", from.c_str(), to.c_str());
   RobotStatePtr robot_state;
   robot_state = std::make_shared<RobotState>(robot_model_);
   robot_state->setToDefaultValues();

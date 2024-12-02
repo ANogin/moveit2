@@ -194,6 +194,8 @@ std::string MoveGroupCapability::stateToStr(MoveGroupState state) const
 bool MoveGroupCapability::performTransform(geometry_msgs::msg::PoseStamped& pose_msg,
                                            const std::string& target_frame) const
 {
+  RCLCPP_DEBUG(getLogger(), "MoveGroupCapability::performTransform(frame_id='%s', target_frame='%s')",
+               pose_msg.header.frame_id.c_str(), target_frame.c_str());
   if (!context_ || !context_->planning_scene_monitor_->getTFClient())
     return false;
   if (pose_msg.header.frame_id == target_frame)

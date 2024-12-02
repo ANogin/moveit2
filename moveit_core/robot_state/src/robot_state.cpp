@@ -909,6 +909,7 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isome
 
 const LinkModel* RobotState::getRigidlyConnectedParentLinkModel(const std::string& frame) const
 {
+  RCLCPP_DEBUG(getLogger(), "RobotState::getRigidlyConnectedParentLinkModel(%s)", frame.c_str());
   bool found;
   const LinkModel* link{ nullptr };
   getFrameInfo(frame, link, found);
@@ -1275,6 +1276,7 @@ const Eigen::Isometry3d& RobotState::getFrameTransform(const std::string& frame_
 
 const Eigen::Isometry3d& RobotState::getFrameTransform(const std::string& frame_id, bool* frame_found) const
 {
+  RCLCPP_DEBUG(getLogger(), "RobotState::getFrameTransform(%s)", frame_id.c_str());
   const LinkModel* ignored_link;
   bool found;
   const auto& result = getFrameInfo(frame_id, ignored_link, found);
@@ -1294,6 +1296,7 @@ const Eigen::Isometry3d& RobotState::getFrameTransform(const std::string& frame_
 const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, const LinkModel*& robot_link,
                                                   bool& frame_found) const
 {
+  RCLCPP_DEBUG(getLogger(), "RobotState::getFrameInfo(%s)", frame_id.c_str());
   if (!frame_id.empty() && frame_id[0] == '/')
     return getFrameInfo(frame_id.substr(1), robot_link, frame_found);
 
@@ -1317,6 +1320,7 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   {
     const Eigen::Isometry3d& transform = jt->second->getGlobalPose();
     robot_link = jt->second->getAttachedLink();
+    RCLCPP_DEBUG(getLogger(), "RobotState::getFrameInfo(%s): found attached to %s", frame_id.c_str(), robot_link->getName().c_str());
     frame_found = true;
     assert(checkLinkTransforms());
     return transform;
@@ -1877,6 +1881,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
 
       if (pose_frame != solver_tip_frame)
       {
+        RCLCPP_DEBUG(getLogger(), "Inside RobotState::setFromIK: solver_tip_frame='%s', pose_frame='%s'",
+                     solver_tip_frame.c_str(), pose_frame.c_str());
         auto* pose_parent = getRigidlyConnectedParentLinkModel(pose_frame);
         if (!pose_parent)
         {
